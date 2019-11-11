@@ -9,7 +9,6 @@
   <body>
     <div id="app"></div>
   </body>
-  <!-- <script type="text/babel" src="scripts.js"></script> -->
   <script type="text/babel">
     const { render } = ReactDOM;
     const { Component } = React;
@@ -21,54 +20,47 @@
         super();
         this.state = {
           names: [],
-          currentName: '',
+          
         };
+        // this.create = this.create.bind(this);
       }
 
-      async componentDidUpdate(prevState) {
-        const { names } = this.state;
-        const lastIdx = names.length - 1;
-        const lastEntry = names[lastIdx];
-        if (names.length > prevState.names.length) {
-          await axios.post('/api/guests', { lastEntry }).data;
-        }
-      }
 
       async componentDidMount() {
         const names = (await axios.get('/api/guests')).data;
         this.setState({ names });
       }
+      
+      create = async (note)=> {
+        const user = {name:note};
+          (await axios.post('./api/guests', user)).data;
+          return (await axios.get('/api/guests')).data;
+        }
       render() {
         const { names } = this.state;
-       
+
         return (
           <div>
             <h1>The Acme Guest Book</h1>
-            <form 
-              onSubmit={event => { console.log(this.state);
-                let value = document.querySelector('input').value;
-                console.log(value);
-                this.setState({
-                  names: [...names,{ id: names.length + 1, name: event.target.value },],
-                  currentName: '',
-
-                });
-                event.preventDefault();
-              }}
-            >
-              <input
-                name="name"
-                type="text"
-                // value={this.state.currentName}
-                // onChange={() => {
-                //   this.setState({ currentName: event.target.value });
-                // }}
-              ></input>
+            <form onSubmit={
+              (e)=>{
+                e.preventDefault();
+                const value = e.target.children[0].value;
+                this.create(value).then( data => this.setState({names: data}));
+                e.target.children[0].value = '';
+              }
+            }>
+              <input name="name" type="text"></input>
               <button> Sign In </button>
             </form>
             <ul>
               {names.map((user, idx) => {
-                return <li key={idx}> {user.name} </li>;
+                return <li key={idx} onClick={ () => {
+                  const newNames = names.filter(name => {
+                    return name.id !== user.id;
+                  })
+                  this.setState({names: newNames});
+                }}> {user.name} </li>;
               })}
             </ul>
           </div>
