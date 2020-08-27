@@ -4,7 +4,7 @@ const path = require('path');
 
 /*______________________________________________*/
 
-const readFilePromise = path => {
+const readFilePromise = (path) => {
   return new Promise((res, rej) => {
     fs.readFile(path, (err, data) => {
       if (err) {
@@ -27,9 +27,9 @@ const writeFilePromise = (file, data) => {
     });
   });
 };
-const addUser = user => {
+const addUser = (user) => {
   return readFilePromise('./guests.json')
-    .then(data => {
+    .then((data) => {
       const users = JSON.parse(data);
       let max = users.reduce((acc, user) => {
         if (user.id > acc) {
@@ -46,32 +46,35 @@ const addUser = user => {
     });
 };
 
-http.createServer((req, res) => {
+http
+  .createServer((req, res) => {
     if (req.url === '/api/guests') {
       if (req.method === 'GET') {
-        readFilePromise(path.join(__dirname, '/guests.json')).then(data => {
+        readFilePromise(path.join(__dirname, '/guests.json')).then((data) => {
           res.write(data);
           res.end();
         });
       } else if (req.method === 'POST') {
         let body = '';
-        req.on('data', chunk => {
+        req.on('data', (chunk) => {
           body += chunk;
         });
         req.on('end', () => {
-          
           const user = JSON.parse(body);
-          addUser(user).then(data => {
-            res.statusCode = 201;
-            res.write(JSON.stringify(data));
-            res.end();
-          }).catch(ex => console.log(ex));
+          addUser(user)
+            .then((data) => {
+              res.statusCode = 201;
+              res.write(JSON.stringify(data));
+              res.end();
+            })
+            .catch((ex) => console.log(ex));
         });
       }
     } else if (req.url === '/') {
-      readFilePromise(path.join(__dirname, '/index.html')).then(data => {
+      readFilePromise(path.join(__dirname, '/index.html')).then((data) => {
         res.write(data);
         res.end();
       });
     }
-  }).listen(3000);
+  })
+  .listen(3000);

@@ -20,47 +20,54 @@
         super();
         this.state = {
           names: [],
-          
+          name: '',
         };
-        // this.create = this.create.bind(this);
       }
-
 
       async componentDidMount() {
         const names = (await axios.get('/api/guests')).data;
         this.setState({ names });
       }
-      
-      create = async (note)=> {
-        const user = {name:note};
-          (await axios.post('./api/guests', user)).data;
-          return (await axios.get('/api/guests')).data;
-        }
-      render() {
-        const { names } = this.state;
 
+      create = async (name) => {
+        const user = { name };
+        const newName = (await axios.post('./api/guests', user)).data;
+        this.setState({ names: [...this.state.names, newName], name: '' });
+      };
+      render() {
+        const { names, name } = this.state;
         return (
           <div>
             <h1>The Acme Guest Book</h1>
-            <form onSubmit={
-              (e)=>{
+            <form
+              onSubmit={(e) => {
                 e.preventDefault();
-                const value = e.target.children[0].value;
-                this.create(value).then( data => this.setState({names: data}));
-                e.target.children[0].value = '';
-              }
-            }>
-              <input name="name" type="text"></input>
-              <button> Sign In </button>
+              }}
+            >
+              <input
+                value={name}
+                placeholder="Input Name"
+                name="name"
+                type="text"
+                onChange={(e) => {
+                  const name = e.target.value;
+                  this.setState({ name });
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  this.create(name);
+                }}
+                disabled={!name}
+              >
+                {' '}
+                Sign In{' '}
+              </button>
             </form>
             <ul>
-              {names.map((user, idx) => {
-                return <li key={idx} onClick={ () => {
-                  const newNames = names.filter(name => {
-                    return name.id !== user.id;
-                  })
-                  this.setState({names: newNames});
-                }}> {user.name} </li>;
+              {names.map((user) => {
+                return <li key={user.id}>{user.name}</li>;
               })}
             </ul>
           </div>
